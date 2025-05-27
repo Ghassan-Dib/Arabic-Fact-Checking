@@ -17,7 +17,10 @@ print("🧠 Creating knowledge store...")
 
 knowledge_store = []
 
-with open("claim_reviews.json", "r") as f:
+data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+claim_reviews_path = os.path.join(data_dir, "claim_reviews.json")
+
+with open(claim_reviews_path, "r") as f:
     claim_reviews = json.load(f)
 
 BATCH_SIZE = 100
@@ -30,7 +33,7 @@ for batch_start in range(0, len(claim_reviews), BATCH_SIZE):
     batch = claim_reviews[batch_start:batch_end]
     print(f"Processing batch {batch_start + 1} to {batch_end}...")
 
-    for claim in tqdm.tqdm(batch[:2]):
+    for claim in tqdm.tqdm(batch):
         claim_text = claim["text"]
         claim_date = date_parse(claim["claimDate"])
         retries = 0

@@ -34,19 +34,29 @@ for batch_start in range(0, len(claim_reviews), BATCH_SIZE):
     print(f"Processing batch {batch_start + 1} to {batch_end}...")
 
     for claim in tqdm.tqdm(batch):
-        claim_text = claim["text"]
-        claim_date = date_parse(claim["claimDate"])
+        claim_text = claim.get("text")
+        claim_date = (
+            date_parse(claim.get("claimDate", ""), fuzzy=True)
+            if claim.get("claimDate")
+            else None
+        )
         retries = 0
         claim_results = []
+
+        # Skip claims with no date or text
+        if not claim_date or not claim_text:
+            print(
+                f"Skipping empty claim text at index {batch_start + len(claim_results)}"
+            )
+            continue
 
         while retries < MAX_RETRIES:
             try:
                 results = search.text(claim_text, max_results=10)
                 for result in results:
                     publish_date = find_published_date(result["href"])
-
                     if publish_date and publish_date < claim_date:
-                        knowledge_store.append(
+                        claim_results.append(
                             {
                                 "title": result["title"],
                                 "url": result["href"],

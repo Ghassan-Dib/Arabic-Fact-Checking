@@ -52,6 +52,7 @@ for batch_start in range(0, len(claim_reviews), BATCH_SIZE):
 
         while retries < MAX_RETRIES:
             try:
+                # Conduct Duckduckgo search
                 results = search.text(claim_text, max_results=10)
                 for result in results:
                     publish_date = find_published_date(result["href"])
@@ -73,7 +74,7 @@ for batch_start in range(0, len(claim_reviews), BATCH_SIZE):
         # Add the results for the current claim to the knowledge store
         knowledge_store.append(
             {
-                "claim": claim_text,
+                "claim": claim,
                 "evidences": claim_results,
             }
         )

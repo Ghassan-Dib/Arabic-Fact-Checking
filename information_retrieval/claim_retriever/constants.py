@@ -1,3 +1,13 @@
+whitelisted_sites = [
+    "misbar.com",
+    "yoopyup.com",
+    "fatabyyano.net",
+    "almushahid.net",
+    "annir.ly",
+    "falso.ly",
+    "akhbarmeter.org",
+]
+
 labels_map = {
     "refuted": [
         "خطأ",

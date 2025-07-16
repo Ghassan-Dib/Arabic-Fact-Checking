@@ -41,6 +41,23 @@ def get_label_distribution(claims, fieldName, output_path):
     return ratings_count
 
 
+def filter_claims_by_source(claims, whitelisted_sites):
+    """
+    Filters claims to only include those from whitelisted sites.
+    """
+    filtered_claims = []
+    for claim in claims:
+        claim_review = claim.get("claimReview", [])
+        if any(
+            review.get("publisher", {}).get("site", "").lower() in whitelisted_sites
+            for review in claim_review
+        ):
+            filtered_claims.append(claim)
+    print(f"✅ Filtered claims to {len(filtered_claims)} from whitelisted sites.")
+
+    return filtered_claims
+
+
 def remove_duplicates(claims):
     seen_claims = set()
     unique_claims = []

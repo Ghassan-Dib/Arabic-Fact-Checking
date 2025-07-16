@@ -9,6 +9,7 @@ from claim_retriever.api import query_api
 from claim_retriever.utils import (
     load_queries,
     save_to_csv,
+    filter_claims_by_source,
     remove_duplicates,
     normalize_claims,
     get_label_distribution,
@@ -21,7 +22,7 @@ from claim_retriever.config import (
     DEFAULT_MAX_AGE_DAYS,
     DEFAULT_PAGE_SIZE,
 )
-from claim_retriever.constants import labels_map
+from claim_retriever.constants import labels_map, whitelisted_sites
 
 
 def main():
@@ -47,6 +48,9 @@ def main():
 
     # Clean the claims data
     if all_claims:
+        # Filter claims to include only those from whitelisted sites
+        all_claims = filter_claims_by_source(all_claims, whitelisted_sites)
+
         # Remove duplicates from the claims
         all_claims = remove_duplicates(all_claims)
 

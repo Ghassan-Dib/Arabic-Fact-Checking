@@ -1,2 +1,6 @@
 .env
 /data
+/publishers
+/scraped_html
+*.json
+*.csv

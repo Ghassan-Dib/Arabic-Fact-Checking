@@ -19,7 +19,7 @@ def save_to_file(data, output_filename, encoding="utf-8"):
     try:
         with open(output_filename, "w", encoding=encoding) as fout:
             json.dump(data, fout, ensure_ascii=False, indent=4)
-        print(f"✅ Successfully saved {len(data)} claims to '{output_filename}'")
+        print(f"✓ Successfully saved {len(data)} claims to '{output_filename}'")
     except Exception as e:
         print(f"Error saving claims to file: {e}")
 
@@ -37,7 +37,7 @@ def get_label_distribution(claims, fieldName, output_path):
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(ratings_count, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ Label distribution saved to '{output_path}'")
+    print(f"✓ Label distribution saved to '{output_path}'")
     return ratings_count
 
 
@@ -53,7 +53,7 @@ def filter_claims_by_source(claims, whitelisted_sites):
             for review in claim_review
         ):
             filtered_claims.append(claim)
-    print(f"✅ Filtered claims to {len(filtered_claims)} from whitelisted sites.")
+    print(f"✓ Filtered claims to {len(filtered_claims)} from whitelisted sites.")
 
     return filtered_claims
 
@@ -67,8 +67,8 @@ def remove_duplicates(claims):
             if claim_text not in seen_claims:
                 unique_claims.append(claim)
                 seen_claims.add(claim_text)
-    print(f"✅ Removed {len(claims) - len(unique_claims)} duplicate claims.")
-    print(f"✅ {len(unique_claims)} unique claims returned.")
+    print(f"✓ Removed {len(claims) - len(unique_claims)} duplicate claims.")
+    print(f"✓ {len(unique_claims)} unique claims returned.")
     return unique_claims
 
 
@@ -104,7 +104,7 @@ def normalize_claims(
         ]
 
     save_to_file(claims, "data/normalized_claims.json")
-    print(f"✅ Normalized and translated textual ratings in {len(claims)} claims")
+    print(f"✓ Normalized and translated textual ratings in {len(claims)} claims")
     return claims
 
 
@@ -157,4 +157,4 @@ def save_to_csv(data, csv_path):
         writer.writeheader()
         writer.writerows(rows)
 
-    print(f"✅ CSV file created successfully at: {csv_path}")
+    print(f"✓ CSV file created successfully at: {csv_path}")

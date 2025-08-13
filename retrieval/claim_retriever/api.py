@@ -1,6 +1,10 @@
-import requests
 import time
-from .config import FACT_CHECK_TOOLS_URL
+import requests
+
+
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+from src.config.settings import FACT_CHECK_TOOLS_URL
 
 
 def query_api(params, retry_delay=1, max_retries=5):

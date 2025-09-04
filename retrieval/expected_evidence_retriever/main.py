@@ -1,13 +1,10 @@
-import json
 import pandas as pd
 from tqdm import tqdm
 from ddgs import DDGS
 
 
-from .utils import extract_evidence_from_claim, retrieve_external_evidence
-from src.config.settings import ANTHROPIC_API_KEY
-from verification.qa_generator.fact_check_qa_generator import FactCheckQAGenerator
-from src.utils.text_pocessing import convert_types, get_claim_domain
+from .utils import retrieve_external_evidence
+
 
 tqdm.pandas()
 

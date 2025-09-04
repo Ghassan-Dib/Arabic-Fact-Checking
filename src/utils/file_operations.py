@@ -24,6 +24,16 @@ def save_to_file(data, output_filename, encoding="utf-8"):
         print(f"Error saving claims to file: {e}")
 
 
+def save_df(df, output_filename):
+    df.to_json(
+        output_filename,
+        orient="records",
+        force_ascii=False,
+        indent=4,
+        date_format="iso",
+    )
+
+
 def get_label_distribution(claims, fieldName, output_path):
     ratings = []
     for claim in claims:

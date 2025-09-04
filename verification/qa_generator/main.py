@@ -17,13 +17,12 @@ tqdm.pandas()
 
 
 def main():
-    df = pd.read_csv("data/processed/claims_with_100_text.csv", encoding="utf-8")
-    df.dropna(subset=["gold_evidence_text"], inplace=True)
+    df = pd.read_csv("data/train/claims.json", encoding="utf-8")
 
-    print("\nGenerating QA pairs for fact checking articles...\n")
+    print(f"\nGenerating QA pairs for {len(df)} fact checking articles...\n")
 
     samples = []
-    for i in tqdm(range(len(df))):
+    for i in tqdm(range(2)):
         qa_generator = FactCheckQAGenerator(ANTHROPIC_API_KEY)
         fact_check_text = df["fact_checking_text"].iloc[i]  # Fact Checking article text
         sources_text = df["gold_evidence_text"].iloc[i]  # Sources text

@@ -155,39 +155,32 @@ def clean_text_block(text):
     return "\n".join(cleaned_lines)
 
 
-def concatenate_sources(sources):
-    """
-    input: [
-        {
-            "name": "نقابة الفنانين في سوريا _ فرع دمشق",
-            "url": "https://www.facebook.com/share/15eWShkeSf/",
-        },
-    ]
-    use the url to extract the text from the source
-
-    output:
-    SOURCE 1:
-    Extracted text from URL 1
-
-    SOURCE 2:
-    Extracted text from URL 2
-    """
+def concatenate_sources(urls, separator="\n\n"):
     texts = []
     index = 1
 
-    if isinstance(sources, str):
-        try:
-            sources = ast.literal_eval(sources)
-        except (ValueError, SyntaxError):
-            print(f"Invalid sources format: {sources}")
-            return ""
-
-    for source in sources:
-        sources_text = "".join(clean_text_block(extract_text_from_url(source["url"])))
+    for url in urls:
+        sources_text = "".join(clean_text_block(extract_text_from_url(url)))
         if sources_text:
-            texts.append(f"SOURCE {index}:\n" + sources_text + "\n\n")
+            texts.append(f"{separator} {index}:\n{sources_text}")
             index += 1
-    return " ".join(texts)
+
+    return "\n\n".join(texts)
+
+
+def concatenate_evidence(evi_pairs):
+    texts = []
+    index = 1
+
+    for url, snippet, date in evi_pairs:
+        sources_text = "".join(clean_text_block(extract_text_from_url(url)))
+        if sources_text:
+            texts.append(
+                f"EVIDENCE {index}:\npublished date: {date}\n{snippet}\n{sources_text}"
+            )
+            index += 1
+
+    return "\n\n".join(texts)
 
 
 def convert_types(obj):

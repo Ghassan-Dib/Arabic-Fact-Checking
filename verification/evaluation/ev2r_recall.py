@@ -11,7 +11,7 @@ from src.config.settings import ANTHROPIC_API_KEY, CLAUDE_SONNET_4
 class EV2REvaluator:
     # Config
     MAX_RETRIES = 10
-    ev2r_reporting_levels = [0.25]
+    ev2r_reporting_levels = [0.5]
     # LLM
     MAX_TOKENS = 3000
     TEMPERATURE = 0  # or 0.1
@@ -34,7 +34,7 @@ class EV2REvaluator:
 
         for i in range(len(srcs)):
             # ------------------------- extract questions and QA pairs from src files
-            src_qa_pairs = srcs.iloc[i]["questions"]
+            src_qa_pairs = srcs.iloc[i]["retrieved_qa_pairs"]
 
             src_q_evidence = []
             for _qa_pair in src_qa_pairs:
@@ -47,7 +47,7 @@ class EV2REvaluator:
                     claim=srcs.iloc[i]["claim"],
                     label=srcs.iloc[i]["predicted_label"],
                     evidence=" ".join(src_q_evidence),
-                    id=srcs.iloc[i]["id"] or i,  # Use index if id is not available
+                    id=srcs.iloc[i]["ClaimID"] or i,  # Use index if id is not available
                 )
             )
             pred_qa_pairs.append(
@@ -55,12 +55,12 @@ class EV2REvaluator:
                     claim=srcs.iloc[i]["claim"],
                     label=srcs.iloc[i]["predicted_label"],
                     evidence=src_qa_pairs,
-                    id=srcs.iloc[i]["id"] or i,  # Use index if id is not available
+                    id=srcs.iloc[i]["ClaimID"] or i,  # Use index if id is not available
                 )
             )
 
             # ------------------------- extract questions and QA pairs from tgt files
-            tgt_qa_pairs = tgts.iloc[i]["questions"]
+            tgt_qa_pairs = tgts.iloc[i]["qa_pairs"]
 
             tgt_q_evidence = []
             for _qa_pair in tgt_qa_pairs:
@@ -73,7 +73,7 @@ class EV2REvaluator:
                     claim=tgts.iloc[i]["claim"],
                     label=tgts.iloc[i]["normalized_label"],
                     evidence=" ".join(tgt_q_evidence),
-                    id=tgts.iloc[i]["id"] or i,  # Use index if id is not available
+                    id=tgts.iloc[i]["ClaimID"] or i,  # Use index if id is not available
                 )
             )
             ref_qa_pairs.append(
@@ -81,7 +81,7 @@ class EV2REvaluator:
                     claim=tgts.iloc[i]["claim"],
                     label=tgts.iloc[i]["normalized_label"],
                     evidence=tgt_qa_pairs,
-                    id=tgts.iloc[i]["id"] or i,  # Use index if id is not available
+                    id=tgts.iloc[i]["ClaimID"] or i,  # Use index if id is not available
                 )
             )
 
@@ -260,7 +260,7 @@ class EV2REvaluator:
     def prompt_api_model(self, srcs, tgts, input_type):
         responses = []
 
-        for i, tgt_sample in tqdm.tqdm(enumerate(tgts)):
+        for i, tgt_sample in tqdm.tqdm(enumerate(tgts), total=len(tgts)):
             pred_sample = srcs[i]
             #
             prompt = self.prepare_prompt(tgt_sample, pred_sample, input_type)

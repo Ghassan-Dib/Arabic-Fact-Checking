@@ -9,7 +9,7 @@ class AVeriTeCEvaluator:
     pairwise_metric = None
     max_questions = 10
     metric = None
-    averitec_reporting_levels = [0.25]
+    averitec_reporting_levels = [0.3]
 
     def __init__(self, metric="meteor"):
         self.metric = metric
@@ -41,18 +41,19 @@ class AVeriTeCEvaluator:
         for i in tqdm.tqdm(range(len(srcs))):
             src_questions, tgt_questions = [], []
             # prediction
-            pred_evidence = srcs.iloc[i]["questions"]
+            pred_evidence = srcs.iloc[i]["retrieved_qa_pairs"]
 
-            for pred_qa in pred_evidence:
-                if pred_qa != "":
-                    pred_question = pred_qa["question"]
-                    if pred_question not in src_questions:
-                        src_questions.append(pred_question)
+            if pred_evidence:
+                for pred_qa in pred_evidence:
+                    if pred_qa != "":
+                        pred_question = pred_qa["question"]
+                        if pred_question not in src_questions:
+                            src_questions.append(pred_question)
 
             src_questions = src_questions[: self.max_questions]
 
             # gold
-            gold_evidence = tgts.iloc[i]["questions"]
+            gold_evidence = tgts.iloc[i]["qa_pairs"]
 
             for gold_qa in gold_evidence:
                 if gold_qa != "":
@@ -105,19 +106,20 @@ class AVeriTeCEvaluator:
         """
         # prediction
         src_strings = []
-        pred_evidence = src["questions"]
+        pred_evidence = src["retrieved_qa_pairs"]
 
-        for qa_pair in pred_evidence:
-            if qa_pair != "":
-                pred_question, pred_answer = qa_pair["question"], qa_pair["answer"]
-                pred_qa_pairs = pred_question + " " + pred_answer
-                src_strings.append(pred_qa_pairs)
+        if pred_evidence:
+            for qa_pair in pred_evidence:
+                if qa_pair != "":
+                    pred_question, pred_answer = qa_pair["question"], qa_pair["answer"]
+                    pred_qa_pairs = pred_question + " " + pred_answer
+                    src_strings.append(pred_qa_pairs)
 
         src_strings = src_strings[: self.max_questions]
 
         # gold
         tgt_strings = []
-        gold_evidence = tgt["questions"]
+        gold_evidence = tgt["qa_pairs"]
 
         for qa_pair in gold_evidence:
             if qa_pair != "":
@@ -145,19 +147,23 @@ class AVeriTeCEvaluator:
         for i in tqdm.tqdm(range(len(srcs))):
             # pred
             src_strings = []
-            pred_evidence = srcs.iloc[i]["questions"]
+            pred_evidence = srcs.iloc[i]["retrieved_qa_pairs"]
 
-            for qa_pair in pred_evidence:
-                if qa_pair != "":
-                    pred_question, pred_answer = qa_pair["question"], qa_pair["answer"]
-                    pred_qa_pairs = pred_question + " " + pred_answer
-                    src_strings.append(pred_qa_pairs)
+            if pred_evidence:
+                for qa_pair in pred_evidence:
+                    if qa_pair != "":
+                        pred_question, pred_answer = (
+                            qa_pair["question"],
+                            qa_pair["answer"],
+                        )
+                        pred_qa_pairs = pred_question + " " + pred_answer
+                        src_strings.append(pred_qa_pairs)
 
             src_strings = src_strings[: self.max_questions]
 
             # gold
             tgt_strings = []
-            gold_evidence = tgts.iloc[i]["questions"]
+            gold_evidence = tgts.iloc[i]["qa_pairs"]
 
             for qa_pair in gold_evidence:
                 if qa_pair != "":

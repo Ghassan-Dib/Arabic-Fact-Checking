@@ -1,8 +1,10 @@
 import json
+from itertools import islice
 import pandas as pd
 from tqdm import tqdm
 
 from src.clients import ClaudeSonnet4Client
+from src.utils.file_operations import save_df
 
 
 def generate_prompt(claim, evidence):
@@ -10,11 +12,10 @@ def generate_prompt(claim, evidence):
     سوف تحصل على ادعاء ومجموعة من الأدلة. حدد الحكم على الادعاء بناءً على الأدلة فقط، دون الاعتماد على أي معرفة خارجية.
 
     التصنيفات المتاحة:
-    1. SUPPORTED - الأدلة تدعم الادعاء بشكل واضح.
-    2. REFUTED - الأدلة تناقض الادعاء بشكل مباشر أو تجعله غير مرجح.
-    3. NOT_ENOUGH_EVIDENCE - لا توجد أدلة كافية لدعم أو نفي الادعاء. استخدم هذا التصنيف إذا لم تتمكن من إثبات أو دحض الادعاء بشكل واضح بناءً على الأدلة، حتى إن لم توجد أدلة داعمة.
-    4. CONFLICTING_EVIDENCE - توجد أدلة متناقضة أو انتقائية (مثل عرض جزء من الحقيقة بشكل مضلل أو تغيّر في الموقف لم يُذكر في الادعاء). يُستخدم أيضًا في الحالات التي تكون فيها الأدلة صحيحة جزئيًا لكنها تُستخدم بشكل يضلل القارئ.
-
+    1. SUPPORTED - الأدلة تدعم وتؤكد حصول الادعاء بشكل واضح وصريح.
+    2. REFUTED - الأدلة تناقض الادعاء بشكل مباشر أو تجعله غير مرجح. يُستخدم أيضًا في الحالات التي يمكن أن يكون فيها أدلة صحيحة جزئيًا لكنها تُستخدم في غير موضعها أو زمانها بشكل يضلل القارئ، حتى إن لم توجد أدلة داعمة.
+    3. CONFLICTING_EVIDENCE - توجد أدلة متناقضة أو انتقائية (مثل عرض جزء من الحقيقة أو تغيّر في الموقف لم يُذكر في الادعاء).
+     
     تعليمات:
     - اعتمد فقط على الأدلة المقدمة، ولا تستخدم أي معرفة خارجية.
     - حلل الأدلة بعناية وفقًا للتصنيفات المذكورة أعلاه.
@@ -26,7 +27,7 @@ def generate_prompt(claim, evidence):
 
     أعد الإجابة بهذا الشكل فقط (مع استبدال القيمة بالقيمة المناسبة):
 
-    {{ "predicted_label": "SUPPORTED" }}
+    {{ "predicted_label": "REFUTED" }}
     """
 
 
@@ -51,26 +52,24 @@ def normalize_label(label):
 def main():
     llm_client = ClaudeSonnet4Client()
 
-    # predict label, given a claim and a set of evidence
-    df = pd.read_json("data/evidence/retrieved_evidence_45.json", encoding="utf-8")
+    df = pd.read_json("data/train/evidence_test.json")
 
-    for i in tqdm(range(len(df))):
-        claim = df["claim"].iloc[i]
-        evidence = df["questions"].iloc[i]
+    print(f"\npredicting labels for {len(df)} claims..\n")
+
+    if "predicted_label" not in df.columns:
+        df["predicted_label"] = None
+
+    for idx, row in tqdm(df.iterrows(), total=len(df)):
+        claim = row.get("claim")
+        evidence = row.get("retrieved_qa_pairs")
 
         prompt = generate_prompt(claim, evidence)
 
         llm_response = llm_client.generate_response(prompt)
         label = extract_label(llm_response)
-        df.at[i, "predicted_label"] = normalize_label(label)
+        df.at[idx, "predicted_label"] = normalize_label(label)
 
-    # save the updated DataFrame to a new JSON file
-    df.to_json(
-        "data/evidence/predicted_labels.json",
-        orient="records",
-        force_ascii=False,
-        indent=2,
-    )
+    save_df(df, "data/train/evi06.json")
 
 
 if __name__ == "__main__":

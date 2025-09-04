@@ -5,15 +5,16 @@ import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from claim_retriever.api import query_api
-from claim_retriever.utils import (
+from api import query_api
+from utils import (
     load_queries,
     save_to_csv,
+    filter_claims_by_source,
     remove_duplicates,
     normalize_claims,
     get_label_distribution,
 )
-from claim_retriever.config import (
+from src.config.settings import (
     API_KEY,
     QUERIES_PATH,
     CLAIMS_PATH,
@@ -21,7 +22,7 @@ from claim_retriever.config import (
     DEFAULT_MAX_AGE_DAYS,
     DEFAULT_PAGE_SIZE,
 )
-from claim_retriever.constants import labels_map
+from src.config.constants import LABELS_MAP, WHITELISTED_SITES
 
 
 def main():
@@ -47,6 +48,9 @@ def main():
 
     # Clean the claims data
     if all_claims:
+        # Filter claims to include only those from whitelisted sites
+        all_claims = filter_claims_by_source(all_claims, WHITELISTED_SITES)
+
         # Remove duplicates from the claims
         all_claims = remove_duplicates(all_claims)
 
@@ -55,7 +59,7 @@ def main():
 
         # Normalize and translate textual ratings
         all_claims = normalize_claims(
-            all_claims, labels_map, translate_labels=True, remove_noisy_labels=True
+            all_claims, LABELS_MAP, translate_labels=True, remove_noisy_labels=True
         )
 
         # Get the label distribution for normalized labels
@@ -72,4 +76,4 @@ if __name__ == "__main__":
     print("\n⏱ Starting claim retrieval process...")
     main()
     end_time = time.time()
-    print(f"✅ Claim retrieval completed in {end_time - start_time:.2f} seconds.")
+    print(f"✓ Claim retrieval completed in {end_time - start_time:.2f} seconds.")

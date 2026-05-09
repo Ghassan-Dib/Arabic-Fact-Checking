@@ -256,7 +256,7 @@ def retrieve_potential_evidence(claim_reviews):
 
                     for result in results:
                         publish_date = find_published_date(result["href"])
-                        print(f"‼️ Publish date: {publish_date}")
+
                         if publish_date and publish_date < claim_date:
                             claim_results.append(
                                 {
@@ -350,15 +350,18 @@ def retrieve_external_evidence(claim_text, claim_date=None):
                     if not is_relevant_result(result, claim_text):
                         continue
 
-                    results.append(
-                        {
-                            "claim": claim_text,
-                            "title": result["title"],
-                            "url": result["href"],
-                            "snippet": result["body"],
-                            "date": publish_date.isoformat() if publish_date else None,
-                        }
-                    )
+                    if publish_date and publish_date < claim_date:
+                        results.append(
+                            {
+                                "claim": claim_text,
+                                "title": result["title"],
+                                "url": result["href"],
+                                "snippet": result["body"],
+                                "date": publish_date.isoformat()
+                                if publish_date
+                                else None,
+                            }
+                        )
                 print(f"✓ Found {len(results)} external sources for the claim.")
                 break
         except Exception as e:

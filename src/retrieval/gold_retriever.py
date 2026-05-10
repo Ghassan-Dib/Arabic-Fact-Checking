@@ -3,6 +3,7 @@ import re
 
 from bs4 import BeautifulSoup, Tag
 
+from core.exceptions import RetrievalError
 from models.evidence import Evidence, GoldEvidence
 from utils.web_scraping import scrape_html
 
@@ -136,21 +137,22 @@ class GoldEvidenceRetriever:
     def __init__(self, max_retries: int = 3) -> None:
         self.max_retries = max_retries
 
-    def retrieve(self, source_url: str) -> GoldEvidence | None:
+    def retrieve(self, source_url: str) -> GoldEvidence:
+        """Scrape a fact-check page and extract its cited source URLs.
+
+        Raises:
+            WebScrapingError: If the page cannot be loaded.
+            RetrievalError: If source extraction fails or no sources are found.
+        """
         soup, _ = scrape_html(source_url)
-        if not soup:
-            logger.warning("Failed to scrape %s", source_url)
-            return None
 
         try:
             raw = extract_sources(soup)
         except Exception as exc:
-            logger.warning("Source extraction failed for %s: %s", source_url, exc)
-            return None
+            raise RetrievalError(f"Source extraction failed for {source_url}") from exc
 
         if not raw:
-            logger.warning("No sources found in %s", source_url)
-            return None
+            raise RetrievalError(f"No sources found in {source_url}")
 
         items = [Evidence(title=s["name"], url=s["url"]) for s in raw if s.get("url")]
         return GoldEvidence(sources=items)

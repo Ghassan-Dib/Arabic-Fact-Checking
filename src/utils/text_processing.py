@@ -3,6 +3,7 @@ from typing import Any
 
 import numpy as np
 
+from core.exceptions import WebScrapingError
 from utils.web_scraping import scrape_html
 
 REMOVAL_KEYWORDS = [
@@ -44,8 +45,9 @@ def remove_duplicate_lines(lines: list[str]) -> list[str]:
 
 
 def extract_text_from_url(url: str) -> str:
-    soup, _ = scrape_html(url)
-    if soup is None:
+    try:
+        soup, _ = scrape_html(url)
+    except WebScrapingError:
         return ""
 
     for tag in soup(

@@ -8,6 +8,8 @@ import requests
 from bs4 import BeautifulSoup
 from dateutil.parser import parse as date_parse
 
+from core.exceptions import WebScrapingError
+
 logger = logging.getLogger(__name__)
 
 _ARABIC_MONTHS = {
@@ -47,9 +49,8 @@ def parse_arabic_date(date_str: str) -> datetime | None:
 
     try:
         return _make_aware(date_parse(date_str, fuzzy=True))
-    except Exception:
-        logger.debug("Failed to parse Arabic date: %s", date_str)
-        return None
+    except Exception as exc:
+        raise WebScrapingError(f"Failed to parse Arabic date: {date_str}") from exc
 
 
 def extract_published_date(url: str) -> datetime | None:
@@ -64,8 +65,8 @@ def extract_published_date(url: str) -> datetime | None:
     try:
         resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
         soup = BeautifulSoup(resp.text, "html.parser")
-    except Exception:
-        return None
+    except Exception as exc:
+        raise WebScrapingError(f"Failed to fetch page for date extraction: {url}") from exc
 
     for script in soup.find_all("script", type="application/ld+json"):
         try:
@@ -116,9 +117,12 @@ def extract_published_date(url: str) -> datetime | None:
 
 def find_published_date(url: str) -> datetime | None:
     """Try custom extraction first, fall back to htmldate."""
-    dt = extract_published_date(url)
-    if dt:
-        return dt
+    try:
+        dt = extract_published_date(url)
+        if dt:
+            return dt
+    except WebScrapingError:
+        pass
 
     try:
         from htmldate import find_date

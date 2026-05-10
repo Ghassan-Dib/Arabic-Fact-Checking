@@ -1,5 +1,6 @@
 import pytest
 
+from core.exceptions import WebScrapingError
 from utils.date_utils import parse_arabic_date
 
 
@@ -30,11 +31,9 @@ class TestParseArabicDate:
             assert dt is not None, f"Failed to parse month: {ar_month}"
             assert dt.month == expected_month
 
-    def test_invalid_date_returns_none(self) -> None:
-        result = parse_arabic_date("not a date at all xyz")
-        # dateutil is very lenient — just ensure no exception is raised
-        # A result of None or any datetime is acceptable
-        assert result is None or hasattr(result, "year")
+    def test_invalid_date_raises(self) -> None:
+        with pytest.raises(WebScrapingError):
+            parse_arabic_date("not a date at all xyz")
 
     def test_returns_timezone_aware(self) -> None:
         dt = parse_arabic_date("10 مارس 2023")

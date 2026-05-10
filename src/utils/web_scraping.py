@@ -5,6 +5,8 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup, Tag
 
+from core.exceptions import WebScrapingError
+
 logger = logging.getLogger(__name__)
 
 _DEFAULT_SCRAPED_HTML_DIR = Path("scraped_html")
@@ -26,10 +28,12 @@ def is_error_page(soup: BeautifulSoup) -> bool:
     )
 
 
-def scrape_html(
-    url: str, output_dir: Path | None = None
-) -> tuple[BeautifulSoup | None, str | None]:
-    """Fetch a URL via headless Chrome and return a cleaned BeautifulSoup tree."""
+def scrape_html(url: str, output_dir: Path | None = None) -> tuple[BeautifulSoup, str]:
+    """Fetch a URL via headless Chrome and return a cleaned BeautifulSoup tree.
+
+    Raises:
+        WebScrapingError: If the page cannot be loaded or returns an error page.
+    """
     try:
         from selenium import webdriver
         from selenium.webdriver.chrome.options import Options
@@ -50,17 +54,15 @@ def scrape_html(
         driver.get(url)
         time.sleep(2)
         html = driver.page_source
-    except Exception:
-        logger.warning("Selenium failed to load %s", url)
-        return None, None
+    except Exception as exc:
+        raise WebScrapingError(f"Selenium failed to load: {url}") from exc
     finally:
         driver.quit()
 
     soup = BeautifulSoup(html, "html.parser")
 
     if is_error_page(soup):
-        logger.warning("Error page detected: %s", url)
-        return None, None
+        raise WebScrapingError(f"Error page detected: {url}")
 
     for tag in soup.find_all("style"):
         tag.decompose()

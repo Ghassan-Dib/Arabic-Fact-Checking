@@ -57,5 +57,8 @@ class EvidenceRetriever:
                 logger.warning("DuckDuckGo error (%s), retry %d in %ds", exc, retries, wait)
                 time.sleep(wait)
 
+        if not results and retries >= _MAX_RETRIES:
+            logger.warning("All DuckDuckGo retries exhausted for claim: %s", claim_text[:80])
+
         time.sleep(self.sleep)
         return results

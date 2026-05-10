@@ -1,0 +1,74 @@
+[project]
+name = "arabic-fact-checking"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.10",
+    "pydantic-settings>=2.7",
+    "anthropic>=0.40",
+    "httpx>=0.28",
+    "requests>=2.32",
+    "beautifulsoup4>=4.12",
+    "selenium>=4.27",
+    "duckduckgo-search>=7.0",
+    "htmldate>=1.9",
+    "python-dateutil>=2.9",
+    "pytz>=2024.2",
+    "pandas>=2.2",
+    "tqdm>=4.67",
+    "numpy>=2.0",
+    "scipy>=1.14",
+    "nltk>=3.9",
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.0",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "httpx>=0.28",
+    "respx>=0.21",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "types-requests>=2.32",
+    "types-beautifulsoup4>=4.12",
+    "types-python-dateutil>=2.9",
+    "types-pytz>=2024.2",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = ["N806"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/verification/*.py" = ["E501"]
+"src/evaluation/*.py" = ["E501"]
+"tests/conftest.py" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+disable_error_code = ["misc"]
+exclude = ["tests/"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "--cov-report=term-missing -q"
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*"]

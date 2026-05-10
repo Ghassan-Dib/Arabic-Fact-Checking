@@ -55,6 +55,8 @@ class LabelPredictor:
             if block is None:
                 raise LLMClientError("No text block in LLM response")
             text = block.text.strip()
+        except LLMClientError:
+            raise
         except Exception as exc:
             raise LLMClientError(f"Label prediction failed: {exc}") from exc
 

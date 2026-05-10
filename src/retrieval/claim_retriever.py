@@ -70,4 +70,4 @@ class ClaimRetriever:
         return self.query_api({"query": query, "key": self.api_key, **kwargs})
 
     def retrieve_recent(self, limit: int = 100, **kwargs: Any) -> list[dict[str, Any]]:
-        return self.query_api({"limit": limit, "sort": "recent", **kwargs})
+        return self.query_api({"limit": limit, "sort": "recent", "key": self.api_key, **kwargs})

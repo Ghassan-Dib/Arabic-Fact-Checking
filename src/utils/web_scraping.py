@@ -1,13 +1,13 @@
 import logging
-import os
 import random
 import time
+from pathlib import Path
 
 from bs4 import BeautifulSoup, Tag
 
 logger = logging.getLogger(__name__)
 
-_SCRAPED_HTML_DIR = "scraped_html"
+_DEFAULT_SCRAPED_HTML_DIR = Path("scraped_html")
 
 
 def _generate_page_id() -> str:
@@ -26,7 +26,9 @@ def is_error_page(soup: BeautifulSoup) -> bool:
     )
 
 
-def scrape_html(url: str) -> tuple[BeautifulSoup | None, str | None]:
+def scrape_html(
+    url: str, output_dir: Path | None = None
+) -> tuple[BeautifulSoup | None, str | None]:
     """Fetch a URL via headless Chrome and return a cleaned BeautifulSoup tree."""
     try:
         from selenium import webdriver
@@ -34,7 +36,8 @@ def scrape_html(url: str) -> tuple[BeautifulSoup | None, str | None]:
     except ImportError as exc:
         raise ImportError("selenium is required for web scraping") from exc
 
-    os.makedirs(_SCRAPED_HTML_DIR, exist_ok=True)
+    save_dir = output_dir if output_dir is not None else _DEFAULT_SCRAPED_HTML_DIR
+    save_dir.mkdir(parents=True, exist_ok=True)
     page_id = _generate_page_id()
 
     options = Options()
@@ -67,7 +70,7 @@ def scrape_html(url: str) -> tuple[BeautifulSoup | None, str | None]:
         if isinstance(tag, Tag) and tag.has_attr("style"):
             del tag["style"]
 
-    with open(f"{_SCRAPED_HTML_DIR}/{page_id}.html", "w", encoding="utf-8") as fh:
+    with open(save_dir / f"{page_id}.html", "w", encoding="utf-8") as fh:
         fh.write(soup.prettify())
 
     return soup, page_id

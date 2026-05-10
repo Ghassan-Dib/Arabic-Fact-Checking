@@ -15,11 +15,8 @@ class JobStatus(StrEnum):
 class PipelineConfig(BaseModel):
     max_claims: int | None = None
     batch_size: int = Field(default=10, ge=1, le=100)
+    # Only collect_claims is currently implemented; remaining steps are in progress.
     collect_claims: bool = True
-    extract_gold_evidence: bool = True
-    retrieve_evidence: bool = True
-    predict_labels: bool = True
-    evaluate_results: bool = True
 
 
 class PipelineJobState(BaseModel):

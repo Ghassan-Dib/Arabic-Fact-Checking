@@ -24,8 +24,29 @@ def _gold_retriever() -> GoldEvidenceRetriever:
     return GoldEvidenceRetriever()
 
 
+@cache
+def _claim_retriever(api_url: str, api_key: str) -> ClaimRetriever:
+    return ClaimRetriever(api_url=api_url, api_key=api_key)
+
+
+@cache
+def _qa_generator(api_key: str, model: str) -> QAGenerator:
+    return QAGenerator(api_key=api_key, model=model)
+
+
+@cache
+def _label_predictor(api_key: str, model: str) -> LabelPredictor:
+    return LabelPredictor(api_key=api_key, model=model)
+
+
+@cache
+def _pipeline(api_url: str, api_key: str, anthropic_key: str, model: str) -> FactCheckingPipeline:
+    settings = get_settings()
+    return FactCheckingPipeline(settings)
+
+
 def get_claim_retriever(settings: SettingsDep) -> ClaimRetriever:
-    return ClaimRetriever(api_url=settings.fact_check_tools_url, api_key=settings.api_key)
+    return _claim_retriever(settings.fact_check_tools_url, settings.api_key)
 
 
 def get_evidence_retriever() -> EvidenceRetriever:
@@ -37,18 +58,17 @@ def get_gold_retriever() -> GoldEvidenceRetriever:
 
 
 def get_qa_generator(settings: SettingsDep) -> QAGenerator:
-    return QAGenerator(api_key=settings.anthropic_api_key, model=settings.claude_model)
+    return _qa_generator(settings.anthropic_api_key, settings.claude_model)
 
 
 def get_label_predictor(settings: SettingsDep) -> LabelPredictor:
-    return LabelPredictor(api_key=settings.anthropic_api_key, model=settings.claude_model)
-
-
-_pipeline: FactCheckingPipeline | None = None
+    return _label_predictor(settings.anthropic_api_key, settings.claude_model)
 
 
 def get_pipeline(settings: SettingsDep) -> FactCheckingPipeline:
-    global _pipeline
-    if _pipeline is None:
-        _pipeline = FactCheckingPipeline(settings)
-    return _pipeline
+    return _pipeline(
+        settings.fact_check_tools_url,
+        settings.api_key,
+        settings.anthropic_api_key,
+        settings.claude_model,
+    )

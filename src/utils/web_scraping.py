@@ -9,7 +9,14 @@ from core.exceptions import WebScrapingError
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_SCRAPED_HTML_DIR = Path("scraped_html")
+
+_PAGE_LOAD_WAIT = 2.0
+
+
+def _default_output_dir() -> Path:
+    from core.config import get_settings
+
+    return Path(get_settings().data_dir) / "scraped_html"
 
 
 def _generate_page_id() -> str:
@@ -40,7 +47,7 @@ def scrape_html(url: str, output_dir: Path | None = None) -> tuple[BeautifulSoup
     except ImportError as exc:
         raise ImportError("selenium is required for web scraping") from exc
 
-    save_dir = output_dir if output_dir is not None else _DEFAULT_SCRAPED_HTML_DIR
+    save_dir = output_dir if output_dir is not None else _default_output_dir()
     save_dir.mkdir(parents=True, exist_ok=True)
     page_id = _generate_page_id()
 
@@ -52,7 +59,7 @@ def scrape_html(url: str, output_dir: Path | None = None) -> tuple[BeautifulSoup
 
     try:
         driver.get(url)
-        time.sleep(2)
+        time.sleep(_PAGE_LOAD_WAIT)
         html = driver.page_source
     except Exception as exc:
         raise WebScrapingError(f"Selenium failed to load: {url}") from exc

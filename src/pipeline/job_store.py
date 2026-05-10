@@ -3,6 +3,9 @@ from datetime import UTC, datetime
 
 from models.pipeline import JobStatus, PipelineJobState
 
+# In-memory store: job state is lost on restart and not shared across multiple
+# uvicorn workers (--workers N). Replace with Redis or SQLite before running
+# in a multi-worker or production environment.
 _jobs: dict[str, PipelineJobState] = {}
 
 

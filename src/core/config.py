@@ -37,4 +37,7 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    # pydantic-settings resolves anthropic_api_key, api_key, and
+    # fact_check_tools_url from environment variables / .env at runtime,
+    # so mypy's "missing arguments" complaint is a false positive here.
     return Settings()  # type: ignore[call-arg]

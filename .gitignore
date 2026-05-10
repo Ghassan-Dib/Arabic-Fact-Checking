@@ -1,6 +1,44 @@
+# Environment
 .env
-/data
-/publishers
-/scraped_html
-*.json
-*.csv
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+
+# uv
+uv.lock
+
+# Data (generated artefacts)
+/publishers/
+/scraped_html/
+/data/processed/
+/data/evidence/
+
+# Keep raw and train data
+!data/raw/
+!data/train/
+
+# IDE
+.vscode/
+.idea/
+*.DS_Store
+
+# Docker
+.dockerignore
+
+# Coverage
+.coverage
+htmlcov/
+coverage.xml
+
+# Data
+data/

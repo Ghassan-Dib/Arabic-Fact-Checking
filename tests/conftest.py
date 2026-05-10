@@ -3,6 +3,7 @@ from collections.abc import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
+from anthropic.types import TextBlock
 from fastapi.testclient import TestClient
 
 os.environ.setdefault("ANTHROPIC_API_KEY", "test-key")
@@ -28,7 +29,7 @@ def mock_anthropic() -> Generator[MagicMock, None, None]:
         mock_cls.return_value = mock_instance
         mock_msg = MagicMock()
         mock_msg.content = [
-            MagicMock(text='{"qa_pairs": [{"question": "سؤال؟", "answer": "جواب"}]}')
+            TextBlock(type="text", text='{"qa_pairs": [{"question": "سؤال؟", "answer": "جواب"}]}')
         ]
         mock_instance.messages.create.return_value = mock_msg
         yield mock_instance

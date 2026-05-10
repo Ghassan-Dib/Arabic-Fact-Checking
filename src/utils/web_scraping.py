@@ -49,7 +49,6 @@ def scrape_html(url: str) -> tuple[BeautifulSoup | None, str | None]:
         html = driver.page_source
     except Exception:
         logger.warning("Selenium failed to load %s", url)
-        driver.quit()
         return None, None
     finally:
         driver.quit()

@@ -1,8 +1,10 @@
+from http import HTTPStatus
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
 from api.deps import SettingsDep
+from core.exceptions import EvaluationError
 from evaluation.evaluator import evaluate_from_files
 from models.evaluation import EvaluationResult
 from models.requests import EvaluateRequest
@@ -26,4 +28,10 @@ async def evaluate(body: EvaluateRequest, settings: SettingsDep) -> EvaluationRe
         raise HTTPException(status_code=400, detail=f"predicted_path not found: {p.name}")
     if not g.exists():
         raise HTTPException(status_code=400, detail=f"gold_path not found: {g.name}")
-    return evaluate_from_files(p, g)
+    try:
+        return evaluate_from_files(p, g)
+    except EvaluationError as exc:
+        raise HTTPException(
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            detail="Failed to load or process evaluation files",
+        ) from exc

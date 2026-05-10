@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from core.exceptions import EvaluationError
 from evaluation.hungarian_meteor import AVeriTeCEvaluator
 from models.evaluation import EvaluationResult
 
@@ -13,8 +14,11 @@ def evaluate_from_files(
     predicted_path: Path,
     gold_path: Path,
 ) -> EvaluationResult:
-    predicted_df = pd.read_json(predicted_path)
-    gold_df = pd.read_json(gold_path)
+    try:
+        predicted_df = pd.read_json(predicted_path)
+        gold_df = pd.read_json(gold_path)
+    except (ValueError, FileNotFoundError, Exception) as exc:
+        raise EvaluationError("Failed to load evaluation files") from exc
 
     scorer = AVeriTeCEvaluator()
 

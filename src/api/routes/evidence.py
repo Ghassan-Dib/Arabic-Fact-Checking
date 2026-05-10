@@ -1,24 +1,14 @@
-from datetime import datetime
 from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import AnyHttpUrl, BaseModel
 
 from api.deps import get_evidence_retriever, get_gold_retriever
 from models.evidence import Evidence, GoldEvidence
+from models.requests import GoldEvidenceRequest, RetrieveEvidenceRequest
 from retrieval.evidence_retriever import EvidenceRetriever
 from retrieval.gold_retriever import GoldEvidenceRetriever
 
 router = APIRouter(prefix="/api/v1/evidence", tags=["evidence"])
-
-
-class GoldEvidenceRequest(BaseModel):
-    source_url: AnyHttpUrl
-
-
-class RetrieveEvidenceRequest(BaseModel):
-    claim_text: str
-    claim_date: datetime | None = None
 
 
 @router.post("/gold", response_model=GoldEvidence)

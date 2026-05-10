@@ -1,18 +1,13 @@
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 
 from api.deps import SettingsDep
 from evaluation.evaluator import evaluate_from_files
 from models.evaluation import EvaluationResult
+from models.requests import EvaluateRequest
 
 router = APIRouter(prefix="/api/v1", tags=["evaluation"])
-
-
-class EvaluateRequest(BaseModel):
-    predicted_path: str
-    gold_path: str
 
 
 def _safe_path(raw: str, allowed_dir: Path) -> Path:

@@ -2,21 +2,15 @@ from http import HTTPStatus
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 
 from api.deps import get_label_predictor, get_qa_generator
 from core.exceptions import LLMClientError
+from models.requests import VerifyRequest
 from models.verification import QAPair, VerificationResult
 from verification.label_predictor import LabelPredictor
 from verification.qa_generator import QAGenerator
 
 router = APIRouter(prefix="/api/v1", tags=["verification"])
-
-
-class VerifyRequest(BaseModel):
-    claim_id: str
-    claim_text: str
-    evidence_text: str
 
 
 @router.post("/verify", response_model=VerificationResult)

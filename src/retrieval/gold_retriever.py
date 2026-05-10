@@ -142,15 +142,15 @@ class GoldEvidenceRetriever:
             logger.warning("Failed to scrape %s", source_url)
             return None
 
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                raw = extract_sources(soup)
-                if raw:
-                    items = [Evidence(title=s["name"], url=s["url"]) for s in raw if s.get("url")]
-                    return GoldEvidence(sources=items)
-                logger.debug("Empty evidence on attempt %d for %s", attempt, source_url)
-            except Exception as exc:
-                logger.warning("Error on attempt %d for %s: %s", attempt, source_url, exc)
+        try:
+            raw = extract_sources(soup)
+        except Exception as exc:
+            logger.warning("Source extraction failed for %s: %s", source_url, exc)
+            return None
 
-        logger.warning("No evidence found after %d attempts: %s", self.max_retries, source_url)
-        return None
+        if not raw:
+            logger.warning("No sources found in %s", source_url)
+            return None
+
+        items = [Evidence(title=s["name"], url=s["url"]) for s in raw if s.get("url")]
+        return GoldEvidence(sources=items)

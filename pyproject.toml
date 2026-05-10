@@ -55,7 +55,7 @@ ignore = ["N806", "S110", "S112", "S311", "S603", "S607"]
 "src/verification/*.py" = ["E501"]
 "src/evaluation/*.py" = ["E501"]
 "tests/conftest.py" = ["E501"]
-"tests/**/*.py" = ["S101"]
+"tests/**/*.py" = ["S101", "N803"]
 
 [tool.mypy]
 python_version = "3.12"

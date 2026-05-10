@@ -6,50 +6,77 @@ from anthropic.types import TextBlock
 from models.claim import ClaimLabel
 from verification.label_predictor import LabelPredictor
 
+MODULE = "verification.label_predictor"
+
 
 @pytest.fixture
 def predictor() -> LabelPredictor:
     return LabelPredictor(api_key="test", model="claude-test")
 
 
-class TestPredict:
-    def _mock_response(self, text: str) -> MagicMock:
-        mock = MagicMock()
-        mock.content = [TextBlock(type="text", text=text)]
-        return mock
+def _text_block(text: str) -> MagicMock:
+    mock = MagicMock()
+    mock.content = [TextBlock(type="text", text=text)]
+    return mock
 
-    def test_supported_label(self, predictor: LabelPredictor) -> None:
-        with patch.object(
-            predictor.client.messages,
-            "create",
-            return_value=self._mock_response('{"predicted_label": "SUPPORTED"}'),
-        ):
-            label = predictor.predict("ادعاء", "دليل")
+
+class TestPredict:
+    @patch(f"{MODULE}.anthropic.Anthropic")
+    def test_supported_label(self, MockAnthropic: MagicMock) -> None:
+        """SUPPORTED JSON response maps to ClaimLabel.SUPPORTED."""
+        # Arrange
+        mock_client = MagicMock()
+        MockAnthropic.return_value = mock_client
+        mock_client.messages.create.return_value = _text_block('{"predicted_label": "SUPPORTED"}')
+        predictor = LabelPredictor(api_key="test", model="claude-test")
+
+        # Act
+        label = predictor.predict("ادعاء", "دليل")
+
+        # Assert
         assert label == ClaimLabel.SUPPORTED
 
-    def test_refuted_label(self, predictor: LabelPredictor) -> None:
-        with patch.object(
-            predictor.client.messages,
-            "create",
-            return_value=self._mock_response('{"predicted_label": "REFUTED"}'),
-        ):
-            label = predictor.predict("ادعاء", "دليل")
+    @patch(f"{MODULE}.anthropic.Anthropic")
+    def test_refuted_label(self, MockAnthropic: MagicMock) -> None:
+        """REFUTED JSON response maps to ClaimLabel.REFUTED."""
+        # Arrange
+        mock_client = MagicMock()
+        MockAnthropic.return_value = mock_client
+        mock_client.messages.create.return_value = _text_block('{"predicted_label": "REFUTED"}')
+        predictor = LabelPredictor(api_key="test", model="claude-test")
+
+        # Act
+        label = predictor.predict("ادعاء", "دليل")
+
+        # Assert
         assert label == ClaimLabel.REFUTED
 
-    def test_unknown_label_defaults_to_nei(self, predictor: LabelPredictor) -> None:
-        with patch.object(
-            predictor.client.messages,
-            "create",
-            return_value=self._mock_response('{"predicted_label": "UNKNOWN"}'),
-        ):
-            label = predictor.predict("ادعاء", "دليل")
+    @patch(f"{MODULE}.anthropic.Anthropic")
+    def test_unknown_label_defaults_to_nei(self, MockAnthropic: MagicMock) -> None:
+        """Unrecognised label string falls back to NOT_ENOUGH_EVIDENCE."""
+        # Arrange
+        mock_client = MagicMock()
+        MockAnthropic.return_value = mock_client
+        mock_client.messages.create.return_value = _text_block('{"predicted_label": "UNKNOWN"}')
+        predictor = LabelPredictor(api_key="test", model="claude-test")
+
+        # Act
+        label = predictor.predict("ادعاء", "دليل")
+
+        # Assert
         assert label == ClaimLabel.NOT_ENOUGH_EVIDENCE
 
-    def test_invalid_json_defaults_to_nei(self, predictor: LabelPredictor) -> None:
-        with patch.object(
-            predictor.client.messages,
-            "create",
-            return_value=self._mock_response("not json"),
-        ):
-            label = predictor.predict("ادعاء", "دليل")
+    @patch(f"{MODULE}.anthropic.Anthropic")
+    def test_invalid_json_defaults_to_nei(self, MockAnthropic: MagicMock) -> None:
+        """Non-JSON response falls back to NOT_ENOUGH_EVIDENCE."""
+        # Arrange
+        mock_client = MagicMock()
+        MockAnthropic.return_value = mock_client
+        mock_client.messages.create.return_value = _text_block("not json")
+        predictor = LabelPredictor(api_key="test", model="claude-test")
+
+        # Act
+        label = predictor.predict("ادعاء", "دليل")
+
+        # Assert
         assert label == ClaimLabel.NOT_ENOUGH_EVIDENCE

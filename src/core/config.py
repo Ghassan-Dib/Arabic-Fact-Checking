@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     default_max_age_days: int = 365
     log_level: str = "INFO"
     data_dir: Path = Path("data")
+    cors_origins: list[str] = ["*"]
 
     model_config = SettingsConfigDict(
         env_file=".env",

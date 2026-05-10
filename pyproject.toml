@@ -48,13 +48,14 @@ line-length = 100
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
-ignore = ["N806"]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM", "S", "G", "RET"]
+ignore = ["N806", "S110", "S112", "S311", "S603", "S607"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/verification/*.py" = ["E501"]
 "src/evaluation/*.py" = ["E501"]
 "tests/conftest.py" = ["E501"]
+"tests/**/*.py" = ["S101"]
 
 [tool.mypy]
 python_version = "3.12"

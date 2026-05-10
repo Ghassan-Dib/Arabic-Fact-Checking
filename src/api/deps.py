@@ -44,5 +44,11 @@ def get_label_predictor(settings: SettingsDep) -> LabelPredictor:
     return LabelPredictor(api_key=settings.anthropic_api_key, model=settings.claude_model)
 
 
+_pipeline: FactCheckingPipeline | None = None
+
+
 def get_pipeline(settings: SettingsDep) -> FactCheckingPipeline:
-    return FactCheckingPipeline(settings)
+    global _pipeline
+    if _pipeline is None:
+        _pipeline = FactCheckingPipeline(settings)
+    return _pipeline

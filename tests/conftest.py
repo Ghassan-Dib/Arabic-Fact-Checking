@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 os.environ.setdefault("ANTHROPIC_API_KEY", "test-key")
+os.environ.setdefault("API_KEY", "test-google-key")
 os.environ.setdefault("FACT_CHECK_TOOLS_URL", "https://factcheck.example.com")
 
 

@@ -1,9 +1,7 @@
 import json
 import logging
 
-import anthropic
-from anthropic.types import TextBlock
-
+from agent.agent import Agent
 from core.exceptions import LLMClientError
 from models.claim import ClaimLabel
 
@@ -38,23 +36,13 @@ _LABEL_MAP: dict[str, ClaimLabel] = {
 
 
 class LabelPredictor:
-    def __init__(self, api_key: str, model: str) -> None:
-        self.client = anthropic.Anthropic(api_key=api_key)
-        self.model = model
+    def __init__(self, *, agent: Agent) -> None:
+        self._agent = agent
 
     def predict(self, claim: str, evidence: str) -> ClaimLabel:
         prompt = _LABEL_PROMPT.format(claim=claim, evidence=evidence)
         try:
-            resp = self.client.messages.create(
-                model=self.model,
-                max_tokens=100,
-                temperature=0,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            block = next((b for b in resp.content if isinstance(b, TextBlock)), None)
-            if block is None:
-                raise LLMClientError("No text block in LLM response")
-            text = block.text.strip()
+            text = self._agent.run(prompt, max_tokens=100, temperature=0.0)
         except LLMClientError:
             raise
         except Exception as exc:

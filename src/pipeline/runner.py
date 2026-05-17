@@ -1,6 +1,9 @@
 import logging
 from typing import Any
 
+from agent.agent import Agent
+from agent.factory import create_client
+from agent.types import AgentConfig, Provider
 from core.config import Settings
 from models.pipeline import JobStatus, PipelineConfig
 from pipeline import job_store
@@ -22,14 +25,14 @@ class FactCheckingPipeline:
         )
         self.evidence_retriever = EvidenceRetriever()
         self.gold_retriever = GoldEvidenceRetriever()
-        self.qa_generator = QAGenerator(
-            api_key=settings.anthropic_api_key,
+        config = AgentConfig(
+            provider=Provider.ANTHROPIC,
             model=settings.claude_model,
-        )
-        self.label_predictor = LabelPredictor(
             api_key=settings.anthropic_api_key,
-            model=settings.claude_model,
         )
+        agent = Agent(client=create_client(config), config=config)
+        self.qa_generator = QAGenerator(agent=agent)
+        self.label_predictor = LabelPredictor(agent=agent)
 
     def run(self, job_id: str, config: PipelineConfig) -> None:
         """Entry point for a BackgroundTask. Updates job_store throughout."""

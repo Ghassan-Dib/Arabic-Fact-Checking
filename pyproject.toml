@@ -57,6 +57,10 @@ ignore = ["N806", "S110", "S112", "S311", "S603", "S607"]
 "tests/conftest.py" = ["E501"]
 "tests/**/*.py" = ["S101", "N803"]
 
+[tool.pyright]
+pythonVersion = "3.12"
+extraPaths = ["src"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true

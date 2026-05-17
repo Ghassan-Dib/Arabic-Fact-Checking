@@ -1,12 +1,9 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
-from anthropic.types import TextBlock
 
 from core.exceptions import JSONParsingError
 from verification.qa_generator import QAGenerator, _extract_json
-
-MODULE = "verification.qa_generator"
 
 
 class TestExtractJson:
@@ -58,24 +55,14 @@ class TestExtractJson:
 
 class TestQAGenerator:
     @pytest.fixture
-    def generator(self) -> QAGenerator:
-        return QAGenerator(api_key="test", model="claude-test")
+    def mock_agent(self) -> MagicMock:
+        return MagicMock()
 
-    @patch(f"{MODULE}.anthropic.Anthropic")
-    def test_generate_from_evidence_returns_pairs(self, MockAnthropic: MagicMock) -> None:
+    def test_generate_from_evidence_returns_pairs(self, mock_agent: MagicMock) -> None:
         """Valid LLM JSON response is parsed into QAPair objects."""
         # Arrange
-        mock_client = MagicMock()
-        MockAnthropic.return_value = mock_client
-        mock_client.messages.create.return_value = MagicMock(
-            content=[
-                TextBlock(
-                    type="text",
-                    text='{"qa_pairs": [{"question": "سؤال؟", "answer": "جواب"}]}',
-                )
-            ]
-        )
-        generator = QAGenerator(api_key="test", model="claude-test")
+        mock_agent.run.return_value = '{"qa_pairs": [{"question": "سؤال؟", "answer": "جواب"}]}'
+        generator = QAGenerator(agent=mock_agent)
 
         # Act
         pairs = generator.generate_from_evidence("ادعاء ما", "دليل نصي")
@@ -85,16 +72,11 @@ class TestQAGenerator:
         assert pairs[0].question == "سؤال؟"
         assert pairs[0].answer == "جواب"
 
-    @patch(f"{MODULE}.anthropic.Anthropic")
-    def test_empty_qa_pairs_returns_empty_list(self, MockAnthropic: MagicMock) -> None:
+    def test_empty_qa_pairs_returns_empty_list(self, mock_agent: MagicMock) -> None:
         """LLM response with empty qa_pairs array returns an empty list."""
         # Arrange
-        mock_client = MagicMock()
-        MockAnthropic.return_value = mock_client
-        mock_client.messages.create.return_value = MagicMock(
-            content=[TextBlock(type="text", text='{"qa_pairs": []}')]
-        )
-        generator = QAGenerator(api_key="test", model="claude-test")
+        mock_agent.run.return_value = '{"qa_pairs": []}'
+        generator = QAGenerator(agent=mock_agent)
 
         # Act
         pairs = generator.generate_from_evidence("ادعاء", "دليل")

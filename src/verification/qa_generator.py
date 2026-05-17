@@ -2,9 +2,7 @@ import json
 import logging
 from datetime import datetime
 
-import anthropic
-from anthropic.types import TextBlock
-
+from agent.agent import Agent
 from core.exceptions import JSONParsingError, LLMClientError
 from models.verification import QAPair
 
@@ -79,22 +77,13 @@ def _extract_json(text: str) -> dict[str, object]:
 
 
 class QAGenerator:
-    def __init__(self, api_key: str, model: str) -> None:
-        self.client = anthropic.Anthropic(api_key=api_key)
-        self.model = model
+    def __init__(self, *, agent: Agent) -> None:
+        self._agent = agent
 
     def _call(self, prompt: str) -> dict[str, object]:
         try:
-            resp = self.client.messages.create(
-                model=self.model,
-                max_tokens=3000,
-                temperature=0.1,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            block = next((b for b in resp.content if isinstance(b, TextBlock)), None)
-            if block is None:
-                raise LLMClientError("No text block in LLM response")
-            return _extract_json(block.text)
+            text = self._agent.run(prompt, max_tokens=3000, temperature=0.1)
+            return _extract_json(text)
         except (JSONParsingError, LLMClientError):
             raise
         except Exception as exc:

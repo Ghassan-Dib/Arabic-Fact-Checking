@@ -3,6 +3,9 @@ from typing import Annotated
 
 from fastapi import Depends
 
+from agent.agent import Agent
+from agent.factory import create_client
+from agent.types import AgentConfig, Provider
 from core.config import Settings, get_settings
 from pipeline.runner import FactCheckingPipeline
 from retrieval.claim_retriever import ClaimRetriever
@@ -30,13 +33,24 @@ def _claim_retriever(api_url: str, api_key: str) -> ClaimRetriever:
 
 
 @cache
+def _agent(api_key: str, model: str) -> Agent:
+    config = AgentConfig(
+        provider=Provider.ANTHROPIC,
+        model=model,
+        api_key=api_key,
+    )
+    client = create_client(config)
+    return Agent(client=client, config=config)
+
+
+@cache
 def _qa_generator(api_key: str, model: str) -> QAGenerator:
-    return QAGenerator(api_key=api_key, model=model)
+    return QAGenerator(agent=_agent(api_key, model))
 
 
 @cache
 def _label_predictor(api_key: str, model: str) -> LabelPredictor:
-    return LabelPredictor(api_key=api_key, model=model)
+    return LabelPredictor(agent=_agent(api_key, model))
 
 
 @cache

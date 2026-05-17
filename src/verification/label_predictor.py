@@ -4,28 +4,9 @@ import logging
 from agent.agent import Agent
 from core.exceptions import LLMClientError
 from models.claim import ClaimLabel
+from prompts.label import LABEL_PROMPT
 
 logger = logging.getLogger(__name__)
-
-_LABEL_PROMPT = """
-سوف تحصل على ادعاء ومجموعة من الأدلة. حدد الحكم على الادعاء بناءً على الأدلة فقط، دون الاعتماد على أي معرفة خارجية.
-
-التصنيفات المتاحة:
-1. SUPPORTED - الأدلة تدعم الادعاء بشكل واضح.
-2. REFUTED - الأدلة تناقض الادعاء بشكل مباشر أو تجعله غير مرجح.
-3. NOT_ENOUGH_EVIDENCE - لا توجد أدلة كافية لدعم أو نفي الادعاء.
-4. CONFLICTING_EVIDENCE - توجد أدلة متناقضة أو انتقائية.
-
-تعليمات:
-- اعتمد فقط على الأدلة المقدمة.
-- أعد فقط كائن JSON يحتوي على المفتاح "predicted_label".
-
-الادعاء: {claim}
-الأدلة: {evidence}
-
-أعد الإجابة بهذا الشكل فقط:
-{{ "predicted_label": "SUPPORTED" }}
-"""
 
 _LABEL_MAP: dict[str, ClaimLabel] = {
     "SUPPORTED": ClaimLabel.SUPPORTED,
@@ -40,7 +21,7 @@ class LabelPredictor:
         self._agent = agent
 
     def predict(self, claim: str, evidence: str) -> ClaimLabel:
-        prompt = _LABEL_PROMPT.format(claim=claim, evidence=evidence)
+        prompt = LABEL_PROMPT.format(claim=claim, evidence=evidence)
         try:
             text = self._agent.run(prompt, max_tokens=100, temperature=0.0)
         except LLMClientError:

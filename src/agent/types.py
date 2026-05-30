@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import StrEnum
 
 from pydantic import BaseModel
@@ -14,12 +15,14 @@ class Message(BaseModel):
     content: str
 
 
-class TokenUsage(BaseModel):
+@dataclass
+class TokenUsage:
     input_tokens: int
     output_tokens: int
 
 
-class LLMResponse(BaseModel):
+@dataclass
+class LLMResponse:
     text: str
     model: str
     usage: TokenUsage | None = None

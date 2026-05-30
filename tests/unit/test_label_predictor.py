@@ -36,6 +36,30 @@ class TestPredict:
         # Assert
         assert label == ClaimLabel.REFUTED
 
+    def test_not_enough_evidence_label(self, mock_agent: MagicMock) -> None:
+        """NOT_ENOUGH_EVIDENCE JSON response maps to ClaimLabel.NOT_ENOUGH_EVIDENCE."""
+        # Arrange
+        mock_agent.run.return_value = '{"predicted_label": "NOT_ENOUGH_EVIDENCE"}'
+        predictor = LabelPredictor(agent=mock_agent)
+
+        # Act
+        label = predictor.predict("ادعاء", "دليل")
+
+        # Assert
+        assert label == ClaimLabel.NOT_ENOUGH_EVIDENCE
+
+    def test_conflicting_evidence_label(self, mock_agent: MagicMock) -> None:
+        """CONFLICTING_EVIDENCE JSON response maps to ClaimLabel.CONFLICTING_EVIDENCE."""
+        # Arrange
+        mock_agent.run.return_value = '{"predicted_label": "CONFLICTING_EVIDENCE"}'
+        predictor = LabelPredictor(agent=mock_agent)
+
+        # Act
+        label = predictor.predict("ادعاء", "دليل")
+
+        # Assert
+        assert label == ClaimLabel.CONFLICTING_EVIDENCE
+
     def test_unknown_label_defaults_to_nei(self, mock_agent: MagicMock) -> None:
         """Unrecognised label string falls back to NOT_ENOUGH_EVIDENCE."""
         # Arrange

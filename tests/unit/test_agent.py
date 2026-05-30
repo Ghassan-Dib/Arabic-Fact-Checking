@@ -1,3 +1,4 @@
+import logging
 import sys
 from collections.abc import Generator
 from unittest.mock import MagicMock, patch
@@ -351,6 +352,27 @@ class TestGenAIClient:
         # Assert
         assert resp.text == "gemini answer"
         assert resp.model == "gemini-pro"
+
+    def test_complete_warns_on_non_user_messages(
+        self, mock_genai_module: MagicMock, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """GenAIClient.complete() logs a warning when non-user messages are dropped."""
+        # Arrange
+        mock_response = MagicMock()
+        mock_response.text = "ok"
+        mock_genai_module.GenerativeModel.return_value.generate_content.return_value = mock_response
+        client = GenAIClient(api_key="key", model="gemini-pro")
+        messages = [
+            Message(role="system", content="be helpful"),
+            Message(role="user", content="hello"),
+        ]
+
+        # Act
+        with caplog.at_level(logging.WARNING, logger="agent.clients.genai"):
+            client.complete(messages, max_tokens=100, temperature=0.0)
+
+        # Assert
+        assert "non-user" in caplog.text
 
     def test_complete_wraps_unexpected_exceptions(self, mock_genai_module: MagicMock) -> None:
         """GenAIClient.complete() wraps unexpected errors as LLMClientError."""

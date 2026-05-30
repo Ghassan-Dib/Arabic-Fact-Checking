@@ -1,6 +1,10 @@
+import logging
+
 from agent.clients.base import BaseClient
 from agent.types import LLMResponse, Message
 from core.exceptions import LLMClientError
+
+logger = logging.getLogger(__name__)
 
 
 class GenAIClient(BaseClient):
@@ -10,6 +14,7 @@ class GenAIClient(BaseClient):
 
             genai.configure(api_key=api_key)
             self._genai_model = genai.GenerativeModel(model)
+            self._genai = genai
         except ImportError as exc:
             raise LLMClientError(
                 "google-generativeai package not installed. Run: uv add google-generativeai"
@@ -23,13 +28,18 @@ class GenAIClient(BaseClient):
         max_tokens: int,
         temperature: float,
     ) -> LLMResponse:
+        non_user = [m for m in messages if m.role != "user"]
+        if non_user:
+            logger.warning(
+                "GenAIClient drops %d non-user message(s) (roles: %s)",
+                len(non_user),
+                ", ".join(m.role for m in non_user),
+            )
         try:
-            import google.generativeai as genai  # pyright: ignore[reportMissingImports]
-
             prompt = "\n".join(m.content for m in messages if m.role == "user")
             response = self._genai_model.generate_content(
                 prompt,
-                generation_config=genai.types.GenerationConfig(
+                generation_config=self._genai.types.GenerationConfig(
                     max_output_tokens=max_tokens,
                     temperature=temperature,
                 ),

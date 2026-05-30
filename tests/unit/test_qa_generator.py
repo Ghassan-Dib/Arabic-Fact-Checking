@@ -83,3 +83,21 @@ class TestQAGenerator:
 
         # Assert
         assert pairs == []
+
+    def test_generate_from_gold_evidence_returns_pairs(self, mock_agent: MagicMock) -> None:
+        """generate_from_gold_evidence parses QAPair objects from a valid LLM response."""
+        # Arrange
+        mock_agent.run.return_value = '{"qa_pairs": [{"question": "كيف؟", "answer": "هكذا"}]}'
+        generator = QAGenerator(agent=mock_agent)
+
+        # Act
+        pairs = generator.generate_from_gold_evidence(
+            claim="ادعاء",
+            fact_check_content="مقال التحقق",
+            source_content="محتوى المصدر",
+        )
+
+        # Assert
+        assert len(pairs) == 1
+        assert pairs[0].question == "كيف؟"
+        assert pairs[0].answer == "هكذا"

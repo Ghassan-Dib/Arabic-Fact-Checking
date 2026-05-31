@@ -15,21 +15,20 @@ logger = logging.getLogger(__name__)
 
 
 class FactCheckingPipeline:
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        qa_generator: QAGenerator,
+        label_predictor: LabelPredictor,
+    ) -> None:
         self.settings = settings
         self.claim_retriever = ClaimRetriever(
             api_url=settings.fact_check_tools_url, api_key=settings.api_key
         )
         self.evidence_retriever = EvidenceRetriever()
         self.gold_retriever = GoldEvidenceRetriever()
-        self.qa_generator = QAGenerator(
-            api_key=settings.anthropic_api_key,
-            model=settings.claude_model,
-        )
-        self.label_predictor = LabelPredictor(
-            api_key=settings.anthropic_api_key,
-            model=settings.claude_model,
-        )
+        self.qa_generator = qa_generator
+        self.label_predictor = label_predictor
 
     def run(self, job_id: str, config: PipelineConfig) -> None:
         """Entry point for a BackgroundTask. Updates job_store throughout."""

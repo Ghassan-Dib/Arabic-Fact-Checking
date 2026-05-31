@@ -3,6 +3,9 @@ from typing import Annotated
 
 from fastapi import Depends
 
+from agent.agent import Agent
+from agent.factory import create_client
+from agent.types import AgentConfig, Provider
 from core.config import Settings, get_settings
 from pipeline.runner import FactCheckingPipeline
 from retrieval.claim_retriever import ClaimRetriever
@@ -30,19 +33,34 @@ def _claim_retriever(api_url: str, api_key: str) -> ClaimRetriever:
 
 
 @cache
+def _agent(api_key: str, model: str) -> Agent:
+    config = AgentConfig(
+        provider=Provider.ANTHROPIC,
+        model=model,
+        api_key=api_key,
+    )
+    client = create_client(config)
+    return Agent(client=client, config=config)
+
+
+@cache
 def _qa_generator(api_key: str, model: str) -> QAGenerator:
-    return QAGenerator(api_key=api_key, model=model)
+    return QAGenerator(agent=_agent(api_key, model))
 
 
 @cache
 def _label_predictor(api_key: str, model: str) -> LabelPredictor:
-    return LabelPredictor(api_key=api_key, model=model)
+    return LabelPredictor(agent=_agent(api_key, model))
 
 
 @cache
-def _pipeline(api_url: str, api_key: str, anthropic_key: str, model: str) -> FactCheckingPipeline:
+def _pipeline() -> FactCheckingPipeline:
     settings = get_settings()
-    return FactCheckingPipeline(settings)
+    return FactCheckingPipeline(
+        settings=settings,
+        qa_generator=_qa_generator(settings.anthropic_api_key, settings.claude_model),
+        label_predictor=_label_predictor(settings.anthropic_api_key, settings.claude_model),
+    )
 
 
 def get_claim_retriever(settings: SettingsDep) -> ClaimRetriever:
@@ -65,10 +83,5 @@ def get_label_predictor(settings: SettingsDep) -> LabelPredictor:
     return _label_predictor(settings.anthropic_api_key, settings.claude_model)
 
 
-def get_pipeline(settings: SettingsDep) -> FactCheckingPipeline:
-    return _pipeline(
-        settings.fact_check_tools_url,
-        settings.api_key,
-        settings.anthropic_api_key,
-        settings.claude_model,
-    )
+def get_pipeline() -> FactCheckingPipeline:
+    return _pipeline()

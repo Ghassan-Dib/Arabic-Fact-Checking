@@ -207,6 +207,42 @@ class TestAnthropicClient:
         assert resp.usage is not None
         assert resp.usage.input_tokens == 10
 
+    def test_complete_extracts_system_message_to_top_level(
+        self, mock_anthropic_cls: MagicMock
+    ) -> None:
+        """System messages are passed as the top-level system param, not in the messages list."""
+        # Arrange
+        mock_anthropic_cls.messages.create.return_value = self._make_resp("ok")
+        client = AnthropicClient(api_key="key", model="claude-test")
+        messages = [
+            Message(role="system", content="You are a helpful assistant."),
+            Message(role="user", content="hello"),
+        ]
+
+        # Act
+        client.complete(messages, max_tokens=100, temperature=0.0)
+
+        # Assert
+        _, kwargs = mock_anthropic_cls.messages.create.call_args
+        assert kwargs["system"] == "You are a helpful assistant."
+        assert all(m["role"] != "system" for m in kwargs["messages"])
+
+    def test_complete_omits_system_param_when_no_system_message(
+        self, mock_anthropic_cls: MagicMock
+    ) -> None:
+        """system param is absent from the API call when no system message is present."""
+        # Arrange
+        mock_anthropic_cls.messages.create.return_value = self._make_resp("ok")
+        client = AnthropicClient(api_key="key", model="claude-test")
+        messages = [Message(role="user", content="hello")]
+
+        # Act
+        client.complete(messages, max_tokens=100, temperature=0.0)
+
+        # Assert
+        _, kwargs = mock_anthropic_cls.messages.create.call_args
+        assert "system" not in kwargs
+
     def test_complete_raises_on_no_text_block(self, mock_anthropic_cls: MagicMock) -> None:
         """AnthropicClient.complete() raises LLMClientError when response has no TextBlock."""
         # Arrange

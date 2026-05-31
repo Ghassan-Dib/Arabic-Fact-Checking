@@ -1,3 +1,5 @@
+from typing import Any
+
 import anthropic
 from anthropic.types import TextBlock
 
@@ -19,12 +21,19 @@ class AnthropicClient(BaseClient):
         temperature: float,
     ) -> LLMResponse:
         try:
-            resp = self._client.messages.create(
-                model=self._model,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                messages=[{"role": m.role, "content": m.content} for m in messages],
-            )
+            system_parts = [m.content for m in messages if m.role == "system"]
+            user_messages = [
+                {"role": m.role, "content": m.content} for m in messages if m.role != "system"
+            ]
+            kwargs: dict[str, Any] = {
+                "model": self._model,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "messages": user_messages,
+            }
+            if system_parts:
+                kwargs["system"] = "\n".join(system_parts)
+            resp = self._client.messages.create(**kwargs)
             block = next((b for b in resp.content if isinstance(b, TextBlock)), None)
             if block is None:
                 raise LLMClientError("No text block in LLM response")

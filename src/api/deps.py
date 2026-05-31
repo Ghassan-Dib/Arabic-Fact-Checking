@@ -55,7 +55,12 @@ def _label_predictor(api_key: str, model: str) -> LabelPredictor:
 
 @cache
 def _pipeline() -> FactCheckingPipeline:
-    return FactCheckingPipeline(get_settings())
+    settings = get_settings()
+    return FactCheckingPipeline(
+        settings=settings,
+        qa_generator=_qa_generator(settings.anthropic_api_key, settings.claude_model),
+        label_predictor=_label_predictor(settings.anthropic_api_key, settings.claude_model),
+    )
 
 
 def get_claim_retriever(settings: SettingsDep) -> ClaimRetriever:
